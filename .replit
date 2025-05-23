@@ -20,6 +20,10 @@ args = "GitHub Auto Cloner"
 task = "workflow.run"
 args = "run_github_auto_cloner"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ETO Dashboard"
+
 [[workflows.workflow]]
 name = "GitHub Auto Cloner"
 author = "agent"
@@ -37,5 +41,18 @@ author = "agent"
 task = "shell.exec"
 args = "python github_auto_cloner.py --min-stars 15 --max-results 10"
 
+[[workflows.workflow]]
+name = "ETO Dashboard"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python eto_dashboard.py"
+waitForPort = 5000
+
 [deployment]
 run = ["sh", "-c", "pip install PyGithub pandas gitpython pyyaml && python github_auto_cloner.py --query \"replit bot\" --min-stars 5 --max-results 5"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
