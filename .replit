@@ -35,7 +35,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python github_auto_cloner.py --help"
+args = "python github_auto_cloner.py --query \"replit bot\" --min-stars 5 --max-results 5"
 
 [deployment]
 run = ["sh", "-c", "pip install PyGithub pandas gitpython pyyaml && python github_auto_cloner.py --query \"replit bot\" --min-stars 5 --max-results 5"]
