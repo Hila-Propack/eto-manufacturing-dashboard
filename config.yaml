@@ -6,25 +6,25 @@ github_token: ""
 # Search configuration
 search:
   # Base search query
-  query: "resource allocation optimization"
+  query: "manufacturing dashboard KPI"
   
   # Industry-specific keywords to find relevant repositories
   industry_keywords:
-    - "Resource allocation"
-    - "Resource optimization"
-    - "Production planning"
-    - "Manufacturing resource planning"
-    - "Job shop scheduling"
-    - "Constraint optimization"
-    - "Linear programming"
-    - "Workforce optimization"
-    - "Equipment utilization"
-    - "Capacity planning"
-    - "Material requirements planning"
-    - "Resource leveling"
-    - "Optimization algorithms"
-    - "Operations research"
-    - "Resource management"
+    - "Real-time dashboard"
+    - "Manufacturing KPI"
+    - "Production metrics"
+    - "ETO dashboard"
+    - "Engineer to Order"
+    - "Manufacturing analytics"
+    - "Business intelligence"
+    - "Production monitoring"
+    - "Manufacturing visualization"
+    - "Performance indicators"
+    - "Shop floor dashboard"
+    - "Data visualization"
+    - "Production reporting"
+    - "Manufacturing metrics"
+    - "Real-time monitoring"
   
   # Whether to add industry keywords to the search query
   add_industry_keywords: true
