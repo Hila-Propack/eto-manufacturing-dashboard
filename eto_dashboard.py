@@ -14,125 +14,96 @@ import plotly.graph_objects as go
 import dash
 from dash import dcc, html, Input, Output, callback
 import dash_bootstrap_components as dbc
+from models import Session, Project, Resource, InventoryItem, KpiRecord, create_tables, initialize_sample_data
 
-# Sample data generator for demonstration purposes
-# This would be replaced with connections to real data sources in production
-def generate_sample_data():
-    # Current date for reference
-    today = datetime.datetime.now()
+# Create database tables and initialize with sample data if needed
+create_tables()
+initialize_sample_data()
+
+# Function to get data from the database
+def get_data_from_db():
+    session = Session()
     
-    # Generate projects data
+    # Get projects
+    projects_db = session.query(Project).all()
     projects = []
-    project_names = ["FR-1000", "PK-2500", "WR-750", "CP-3000", "BP-1200"]
-    project_types = ["Food Robot", "Packaging Kit", "Wrapping Robot", "Case Packer", "Bottle Packer"]
-    project_statuses = ["Engineering", "Procurement", "Production", "Testing", "Delivered"]
-    
-    for i in range(20):
-        start_date = today - datetime.timedelta(days=np.random.randint(0, 180))
-        duration = np.random.randint(30, 120)
-        due_date = start_date + datetime.timedelta(days=duration)
-        
-        progress = 0
-        if today > due_date:
-            progress = 100
-        else:
-            days_passed = (today - start_date).days
-            progress = min(100, int((days_passed / duration) * 100))
-            # Add some randomness to progress
-            progress = min(100, max(0, progress + np.random.randint(-10, 20)))
-        
-        estimated_hours = np.random.randint(300, 2000)
-        actual_hours = int(estimated_hours * (progress/100) * np.random.uniform(0.8, 1.3))
-        
-        cost_variance = np.random.uniform(-15, 15)
-        schedule_variance = np.random.uniform(-20, 10)
-        
-        # Use more realistic naming convention for projects
-        project_name = f"{np.random.choice(project_names)}-{np.random.randint(1000, 9999)}"
-        
+    for project in projects_db:
         projects.append({
-            "id": i+1,
-            "name": project_name,
-            "type": np.random.choice(project_types),
-            "customer": f"Customer {np.random.randint(1, 15)}",
-            "start_date": start_date.strftime("%Y-%m-%d"),
-            "due_date": due_date.strftime("%Y-%m-%d"),
-            "status": np.random.choice(project_statuses),
-            "progress": progress,
-            "estimated_hours": estimated_hours,
-            "actual_hours": actual_hours,
-            "cost_variance": cost_variance,
-            "schedule_variance": schedule_variance,
-            "materials_cost": np.random.randint(50000, 200000),
-            "labor_cost": np.random.randint(30000, 150000),
-            "original_budget": np.random.randint(100000, 500000),
-            "current_budget": np.random.randint(100000, 500000),
+            "id": project.id,
+            "name": project.name,
+            "type": project.type,
+            "customer": project.customer,
+            "start_date": project.start_date.strftime("%Y-%m-%d") if project.start_date else "",
+            "due_date": project.due_date.strftime("%Y-%m-%d") if project.due_date else "",
+            "status": project.status,
+            "progress": project.progress,
+            "estimated_hours": project.estimated_hours,
+            "actual_hours": project.actual_hours,
+            "cost_variance": project.cost_variance,
+            "schedule_variance": project.schedule_variance,
+            "materials_cost": project.materials_cost,
+            "labor_cost": project.labor_cost,
+            "original_budget": project.original_budget,
+            "current_budget": project.current_budget
         })
     
-    # Generate resource data
+    # Get resources
+    resources_db = session.query(Resource).all()
     resources = []
-    resource_types = ["Engineer", "Technician", "Welder", "Electrician", "QA Specialist", "Programmer"]
-    for i in range(30):
-        utilization = np.random.randint(50, 100)
+    for resource in resources_db:
         resources.append({
-            "id": i+1,
-            "name": f"{np.random.choice(resource_types)} {i+1}",
-            "type": np.random.choice(resource_types),
-            "department": np.random.choice(["Engineering", "Production", "QA", "Assembly"]),
-            "utilization": utilization,
-            "available_hours": np.random.randint(20, 40),
-            "scheduled_hours": np.random.randint(30, 45),
-            "project_count": np.random.randint(1, 4)
+            "id": resource.id,
+            "name": resource.name,
+            "type": resource.type,
+            "department": resource.department,
+            "utilization": resource.utilization,
+            "available_hours": resource.available_hours,
+            "scheduled_hours": resource.scheduled_hours,
+            "project_count": resource.project_count
         })
     
-    # Generate inventory data
+    # Get inventory
+    inventory_db = session.query(InventoryItem).all()
     inventory = []
-    component_types = [
-        "Motors", "Sensors", "Controllers", "Actuators", "Conveyors", 
-        "Grippers", "Electrical Panels", "Vision Systems", "Safety Components",
-        "Servo Drives", "Pneumatic Valves", "HMI Units", "Gearboxes"
-    ]
-    
-    for component in component_types:
+    for item in inventory_db:
         inventory.append({
-            "component": component,
-            "on_hand": np.random.randint(5, 50),
-            "allocated": np.random.randint(3, 30),
-            "on_order": np.random.randint(0, 20),
-            "lead_time_days": np.random.randint(7, 60),
-            "reorder_point": np.random.randint(5, 15),
-            "avg_monthly_usage": np.random.randint(3, 25),
-            "cost_per_unit": np.random.randint(100, 5000)
+            "component": item.component,
+            "on_hand": item.on_hand,
+            "allocated": item.allocated,
+            "on_order": item.on_order,
+            "lead_time_days": item.lead_time_days,
+            "reorder_point": item.reorder_point,
+            "avg_monthly_usage": item.avg_monthly_usage,
+            "cost_per_unit": item.cost_per_unit
         })
     
-    # Generate KPI data
-    current_month = today.replace(day=1)
+    # Get KPIs
+    kpis_db = session.query(KpiRecord).order_by(KpiRecord.date).all()
     kpis = []
-    
-    # Create 12 months of KPI data
-    for i in range(12):
-        month = current_month - datetime.timedelta(days=30*i)
+    for kpi in kpis_db:
         kpis.append({
-            "date": month.strftime("%Y-%m"),
-            "on_time_delivery": np.random.randint(60, 95),
-            "first_pass_yield": np.random.randint(70, 98),
-            "labor_efficiency": np.random.randint(75, 95),
-            "cycle_time_variance": np.random.uniform(-15, 15),
-            "material_waste_percent": np.random.uniform(2, 10),
-            "engineering_change_orders": np.random.randint(2, 12),
-            "customer_satisfaction": np.random.randint(70, 95),
-            "safety_incidents": np.random.randint(0, 3)
+            "date": kpi.date.strftime("%Y-%m"),
+            "on_time_delivery": kpi.on_time_delivery,
+            "first_pass_yield": kpi.first_pass_yield,
+            "labor_efficiency": kpi.labor_efficiency,
+            "cycle_time_variance": kpi.cycle_time_variance,
+            "material_waste_percent": kpi.material_waste_percent,
+            "engineering_change_orders": kpi.engineering_change_orders,
+            "customer_satisfaction": kpi.customer_satisfaction,
+            "safety_incidents": kpi.safety_incidents
         })
+    
+    session.close()
     
     return {
         "projects": projects,
         "resources": resources,
         "inventory": inventory,
-        "kpis": sorted(kpis, key=lambda x: x["date"])
+        "kpis": kpis
     }
 
-# Initialize data
-data = generate_sample_data()
+# Initialize data from database
+data = get_data_from_db()
 
 # Initialize the Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
