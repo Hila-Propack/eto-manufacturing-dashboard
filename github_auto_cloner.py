@@ -22,12 +22,25 @@ from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any, Optional, Union
 
-# Import only the required libraries to start with
-# We'll add these libraries as the project progresses
-# import pandas as pd
-# import git
-# from github import Github, RateLimitExceededException, GithubException
-# from github.Repository import Repository
+# Import required libraries
+try:
+    import pandas as pd
+    pandas_available = True
+except ImportError:
+    pandas_available = False
+    
+try:
+    import git
+    git_available = True
+except ImportError:
+    git_available = False
+    
+try:
+    from github import Github, RateLimitExceededException, GithubException
+    from github.Repository import Repository
+    github_available = True
+except ImportError:
+    github_available = False
 
 # Configure logging
 logging.basicConfig(
@@ -65,8 +78,7 @@ class GitHubAutoCloner:
     def __init__(self, config_path: str = "config.yaml"):
         """Initialize the GitHub Auto Cloner with configuration"""
         self.config = self._load_config(config_path)
-        # We'll implement GitHub client initialization later
-        # self.github = self._init_github_client()
+        self.github = self._init_github_client()
         self.results = []
         
     def _load_config(self, config_path: str) -> Dict[str, Any]:
@@ -85,12 +97,26 @@ class GitHubAutoCloner:
     
     def _init_github_client(self):
         """Initialize GitHub client with token from environment or config"""
-        # Placeholder for GitHub client initialization that uses subprocess to make GitHub API calls
         token = os.getenv("GITHUB_TOKEN", self.config.get("github_token", ""))
         if not token:
             logger.warning("GitHub token not found. Limited functionality available.")
             logger.warning("Set GITHUB_TOKEN environment variable for full functionality.")
-        return token
+            return None
+            
+        if github_available:
+            try:
+                github_client = Github(token)
+                # Test connection by getting the authenticated user
+                user = github_client.get_user().login
+                logger.info(f"Successfully connected to GitHub API as {user}")
+                return github_client
+            except Exception as e:
+                logger.error(f"Failed to initialize GitHub client: {str(e)}")
+                logger.warning("Falling back to limited functionality mode")
+                return None
+        else:
+            logger.warning("PyGithub library not available. Using limited functionality.")
+            return None
     
     def search_repositories(self, query: str = None, **kwargs) -> List[RepoData]:
         """
@@ -126,8 +152,78 @@ class GitHubAutoCloner:
             
         logger.info(f"Searching repositories with query: {query}")
         
-        # Create sample results for demonstration
-        # In a full implementation, this would call the GitHub API
+        # Use GitHub API if available
+        if github_available and self.github:
+            try:
+                # Get result count
+                total_count = self.github.search_repositories(query).totalCount
+                logger.info(f"Found {total_count} repositories matching the search criteria")
+                
+                # Limit results
+                max_results = kwargs.get("max_results", search_config.get("max_results", 100))
+                if max_results < total_count:
+                    logger.info(f"Limiting results to {max_results} repositories")
+                    
+                # Get the actual repositories
+                repositories = []
+                count = 0
+                
+                # Search GitHub
+                for repo in self.github.search_repositories(query, sort="stars", order="desc"):
+                    if count >= max_results:
+                        break
+                    
+                    try:
+                        # Calculate industry relevance score
+                        industry_relevance = self._calculate_industry_relevance(
+                            repo.name, 
+                            repo.description or "", 
+                            repo.get_topics()
+                        )
+                        
+                        # Create RepoData object
+                        repo_data = RepoData(
+                            name=repo.name,
+                            owner=repo.owner.login,
+                            url=repo.html_url,
+                            clone_url=repo.clone_url,
+                            description=repo.description or "",
+                            stars=repo.stargazers_count,
+                            forks=repo.forks_count,
+                            watchers=repo.watchers_count,
+                            language=repo.language or "Not specified",
+                            created_at=repo.created_at.isoformat() if repo.created_at else "",
+                            updated_at=repo.updated_at.isoformat() if repo.updated_at else "",
+                            pushed_at=repo.pushed_at.isoformat() if repo.pushed_at else "",
+                            industry_relevance=industry_relevance
+                        )
+                        
+                        repositories.append(repo_data)
+                        count += 1
+                        
+                        # Check rate limit occasionally
+                        if count % 10 == 0:
+                            self._check_rate_limit()
+                    
+                    except Exception as e:
+                        logger.error(f"Error processing repository {repo.full_name}: {str(e)}")
+                
+                # Filter by minimum industry relevance
+                min_relevance = kwargs.get("min_relevance", search_config.get("min_industry_relevance", 0.0))
+                if min_relevance > 0:
+                    repositories = [r for r in repositories if r.industry_relevance >= min_relevance]
+                    logger.info(f"Filtered to {len(repositories)} repositories with industry relevance >= {min_relevance}")
+                
+                self.results = repositories
+                return repositories
+                
+            except Exception as e:
+                logger.error(f"GitHub API search failed: {str(e)}")
+                logger.warning("Falling back to sample data mode")
+        else:
+            logger.warning("GitHub API not available, using sample data")
+        
+        # Create sample results when GitHub API is unavailable
         sample_repos = []
         
         # Add some sample repositories based on the query
@@ -140,6 +236,9 @@ class GitHubAutoCloner:
         elif "operations management" in query.lower():
             relevance = 0.9
             prefix = "operations-mgmt" 
+        elif "replit" in query.lower():
+            relevance = 0.7
+            prefix = "replit"
         else:
             relevance = 0.5
             prefix = "sample"
@@ -169,7 +268,7 @@ class GitHubAutoCloner:
             sample_repos = [r for r in sample_repos if r.industry_relevance >= min_relevance]
             
         self.results = sample_repos
-        logger.info(f"Found {len(sample_repos)} sample repositories")
+        logger.info(f"Generated {len(sample_repos)} sample repositories")
         
         return sample_repos
     def _calculate_industry_relevance(self, name: str, description: str, topics: List[str] = None) -> float:
@@ -255,48 +354,108 @@ class GitHubAutoCloner:
         to_clone = repositories[:max_to_clone]
         cloned_repos = []
         
+        # Get GitHub token for authentication if available
+        token = os.getenv("GITHUB_TOKEN", self.config.get("github_token", ""))
+        
         for repo in to_clone:
             target_dir = clone_path / f"{repo.owner}_{repo.name}"
             
             try:
-                # Instead of using gitpython, use subprocess to clone
-                logger.info(f"Cloning {repo.clone_url} to {target_dir}")
+                # Create authenticated URL if token is available
+                clone_url = repo.clone_url
+                if token and "github.com" in clone_url:
+                    # Insert token into clone URL for authentication
+                    clone_url = clone_url.replace("https://", f"https://{token}@")
                 
-                if target_dir.exists():
-                    logger.info(f"Repository directory already exists. Updating...")
-                    if (target_dir / ".git").exists():
-                        # If it's a git repo, update it
-                        cmd = ["git", "-C", str(target_dir), "pull", "origin", "main"]
-                        result = subprocess.run(cmd, capture_output=True, text=True)
-                        if result.returncode != 0:
-                            # Try master branch if main fails
-                            cmd = ["git", "-C", str(target_dir), "pull", "origin", "master"]
+                logger.info(f"Cloning {repo.url} to {target_dir}")
+                
+                if git_available:
+                    # Use GitPython if available
+                    try:
+                        if target_dir.exists() and (target_dir / ".git").exists():
+                            git_repo = git.Repo(target_dir)
+                            git_repo.remotes.origin.pull()
+                            logger.info(f"Updated existing repository {repo.name}")
+                        else:
+                            if target_dir.exists():
+                                import shutil
+                                shutil.rmtree(target_dir)
+                            git.Repo.clone_from(clone_url, target_dir)
+                            logger.info(f"Cloned new repository {repo.name}")
+                        
+                        repo.cloned = True
+                        repo.clone_path = str(target_dir)
+                        cloned_repos.append(repo)
+                    except Exception as e:
+                        logger.error(f"GitPython error while cloning {repo.name}: {str(e)}")
+                        raise
+                else:
+                    # Fall back to subprocess git commands
+                    if target_dir.exists():
+                        if (target_dir / ".git").exists():
+                            # If it's a git repo, update it
+                            cmd = ["git", "-C", str(target_dir), "pull", "origin", "main"]
+                            result = subprocess.run(cmd, capture_output=True, text=True)
+                            if result.returncode != 0:
+                                # Try master branch if main fails
+                                cmd = ["git", "-C", str(target_dir), "pull", "origin", "master"]
+                                result = subprocess.run(cmd, capture_output=True, text=True)
+                        else:
+                            # If directory exists but isn't a git repo, remove and clone
+                            import shutil
+                            shutil.rmtree(target_dir)
+                            cmd = ["git", "clone", clone_url, str(target_dir)]
                             result = subprocess.run(cmd, capture_output=True, text=True)
                     else:
-                        # If directory exists but isn't a git repo, remove and clone
-                        import shutil
-                        shutil.rmtree(target_dir)
-                        cmd = ["git", "clone", repo.clone_url, str(target_dir)]
+                        # Clone new repository
+                        cmd = ["git", "clone", clone_url, str(target_dir)]
                         result = subprocess.run(cmd, capture_output=True, text=True)
-                else:
-                    # Clone new repository
-                    cmd = ["git", "clone", repo.clone_url, str(target_dir)]
-                    result = subprocess.run(cmd, capture_output=True, text=True)
-                
-                if result.returncode == 0:
-                    repo.cloned = True
-                    repo.clone_path = str(target_dir)
-                    cloned_repos.append(repo)
-                    logger.info(f"Successfully cloned/updated {repo.name}")
-                else:
-                    logger.error(f"Failed to clone {repo.name}: {result.stderr}")
                     
+                    if result.returncode == 0:
+                        repo.cloned = True
+                        repo.clone_path = str(target_dir)
+                        cloned_repos.append(repo)
+                        logger.info(f"Successfully cloned/updated {repo.name}")
+                    else:
+                        error_message = result.stderr
+                        # Don't log the full error if it might contain the token
+                        if token and token in error_message:
+                            error_message = error_message.replace(token, "[REDACTED]")
+                        logger.error(f"Failed to clone {repo.name}: {error_message}")
+                        
             except Exception as e:
-                logger.error(f"Error while cloning {repo.clone_url}: {str(e)}")
+                error_message = str(e)
+                # Don't log the full error if it might contain the token
+                if token and token in error_message:
+                    error_message = error_message.replace(token, "[REDACTED]")
+                logger.error(f"Error while cloning {repo.url}: {error_message}")
         
         logger.info(f"Successfully cloned {len(cloned_repos)} repositories")
         return cloned_repos
     
+    def _check_rate_limit(self):
+        """Check GitHub API rate limit and pause if necessary"""
+        if not github_available or not self.github:
+            return
+            
+        try:
+            rate_limit = self.github.get_rate_limit()
+            remaining = rate_limit.search.remaining
+            
+            if remaining < 5:
+                reset_time = rate_limit.search.reset.replace(tzinfo=None)
+                now = datetime.datetime.utcnow()
+                wait_seconds = (reset_time - now).total_seconds() + 5  # Add buffer
+                
+                logger.warning(f"GitHub API rate limit low ({remaining} calls remaining)")
+                logger.warning(f"Waiting {wait_seconds:.0f} seconds until reset at {reset_time}")
+                
+                if wait_seconds > 0:
+                    time.sleep(wait_seconds)
+                    logger.info("Rate limit reset, continuing operations")
+        except Exception as e:
+            logger.error(f"Error checking rate limit: {str(e)}")
+            
     def export_results(self, format: str = "json", output_file: str = None) -> str:
         """
         Export search results to JSON or CSV file
@@ -312,8 +471,6 @@ class GitHubAutoCloner:
             logger.warning("No results to export")
             return ""
         
-        logger.info("Export functionality is limited until pandas is installed")
-        
         export_config = self.config.get("export", {})
         
         if output_file is None:
@@ -328,15 +485,20 @@ class GitHubAutoCloner:
             results_dict = [asdict(repo) for repo in self.results]
             
             if format.lower() == "csv":
-                # Basic CSV export without pandas
-                logger.info("CSV export using pandas is not available")
-                # Use basic CSV module instead
-                with open(output_file, 'w', newline='') as f:
-                    if results_dict:
-                        writer = csv.DictWriter(f, fieldnames=results_dict[0].keys(), 
-                                               quoting=csv.QUOTE_NONNUMERIC)
-                        writer.writeheader()
-                        writer.writerows(results_dict)
+                if pandas_available:
+                    # Use pandas for CSV export if available
+                    try:
+                        df = pd.DataFrame(results_dict)
+                        df.to_csv(output_file, index=False, quoting=csv.QUOTE_NONNUMERIC)
+                        logger.info("Exported results using pandas")
+                    except Exception as e:
+                        logger.error(f"Error using pandas for export: {str(e)}")
+                        logger.warning("Falling back to basic CSV export")
+                        self._export_csv_basic(results_dict, output_file)
+                else:
+                    # Basic CSV export without pandas
+                    logger.info("Pandas not available, using basic CSV export")
+                    self._export_csv_basic(results_dict, output_file)
             else:
                 # JSON export
                 with open(output_file, 'w') as f:
@@ -348,6 +510,20 @@ class GitHubAutoCloner:
         except Exception as e:
             logger.error(f"Error exporting results: {str(e)}")
             return ""
+            
+    def _export_csv_basic(self, results_dict, output_file):
+        """Helper method for basic CSV export without pandas"""
+        try:
+            with open(output_file, 'w', newline='') as f:
+                if results_dict:
+                    writer = csv.DictWriter(f, fieldnames=results_dict[0].keys(), 
+                                          quoting=csv.QUOTE_NONNUMERIC)
+                    writer.writeheader()
+                    writer.writerows(results_dict)
+            return True
+        except Exception as e:
+            logger.error(f"Error in basic CSV export: {str(e)}")
+            return False
 
 
 def main():

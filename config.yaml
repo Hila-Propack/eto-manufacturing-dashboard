@@ -6,19 +6,21 @@ github_token: ""
 # Search configuration
 search:
   # Base search query
-  query: "food packaging"
+  query: "chatbot AI"
   
   # Industry-specific keywords to find relevant repositories
   industry_keywords:
-    - "food packaging"
-    - "sustainable packaging"
-    - "biodegradable"
-    - "compostable"
-    - "packaging automation"
-    - "food tech"
-    - "food safety"
-    - "shelf life"
-    - "food preservation"
+    - "replit bot"
+    - "chatbot"
+    - "AI assistant"
+    - "conversational AI"
+    - "natural language processing"
+    - "machine learning"
+    - "chat automation"
+    - "discord bot"
+    - "telegram bot"
+    - "slack bot"
+    - "language model"
   
   # Whether to add industry keywords to the search query
   add_industry_keywords: true
