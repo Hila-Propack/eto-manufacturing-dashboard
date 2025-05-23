@@ -1,20 +1,63 @@
-# GitHub Auto Cloner
+# ETO Manufacturing Dashboard
 
-A Python CLI tool that automates finding, filtering, and cloning relevant GitHub repositories based on keywords, industry relevance, and popularity metrics.
+A real-time dashboard for monitoring key performance indicators (KPIs) in an Engineer-to-Order (ETO) manufacturing environment specialized for food packaging robots.
 
 ## Features
 
-- GitHub repository search based on keywords and filters
-- Ability to filter repositories by star count, recency, and activity level
-- Focus on repositories relevant to the food packaging industry
-- Automatic cloning of selected repositories
-- Basic results storage and reporting (JSON/CSV)
-- Command-line interface for easy automation
+- **Project Tracking**: Monitor project status, progress, schedule variance, and cost performance
+- **Resource Management**: Track resource utilization, availability, and allocation across departments
+- **Inventory Monitoring**: Visualize component inventory levels, lead times, and inventory value
+- **Performance KPIs**: Analyze trends in key metrics including on-time delivery, first pass yield, and quality metrics
 
-## Installation
+## Dashboard Screenshots
+
+### Projects Overview
+![Projects Overview](screenshots/projects.png)
+
+### Resource Utilization
+![Resource Utilization](screenshots/resources.png)
+
+### Inventory Status
+![Inventory Status](screenshots/inventory.png)
+
+### Key Performance Indicators
+![Key Performance Indicators](screenshots/kpis.png)
+
+## Getting Started
+
+### Prerequisites
+
+- Python 3.11 or higher
+- Required Python packages: dash, pandas, plotly, numpy, flask, dash-bootstrap-components
+
+### Installation
 
 1. Clone this repository:
-   ```
-   git clone <repository-url>
-   cd github-auto-cloner
-   
+```bash
+git clone https://github.com/yourusername/eto-manufacturing-dashboard.git
+cd eto-manufacturing-dashboard
+```
+
+2. Install required packages:
+```bash
+pip install dash pandas plotly numpy flask dash-bootstrap-components
+```
+
+3. Run the dashboard:
+```bash
+python eto_dashboard.py
+```
+
+4. Open your browser and navigate to `http://localhost:5000`
+
+## Customization
+
+The dashboard can be customized for your specific ETO manufacturing needs:
+
+- Connect to your actual data sources by replacing the sample data generation functions
+- Add additional metrics or visualizations specific to your food packaging robot operations
+- Customize the color scheme and layout to match your company branding
+
+## License
+
+MIT License

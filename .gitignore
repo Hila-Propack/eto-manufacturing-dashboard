@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+env/
 build/
 develop-eggs/
 dist/
@@ -15,30 +16,32 @@ lib64/
 parts/
 sdist/
 var/
-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# Virtual environments
+# Virtual environment
 venv/
-env/
 ENV/
 
-# IDE
+# Editor files
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# Logs
-*.log
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Project-specific
-cloned_repos/
-github_results*.json
-github_results*.csv
-
-# Environment variables
+# Dashboard specific
+screenshots/
 .env
+*.log
+cloned_repos/
+github_results.json
