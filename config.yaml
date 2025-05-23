@@ -6,24 +6,26 @@ github_token: ""
 # Search configuration
 search:
   # Base search query
-  query: "chatbot AI"
+  query: "data visualization"
   
   # Industry-specific keywords to find relevant repositories
   industry_keywords:
-    - "replit bot"
-    - "chatbot"
-    - "AI assistant"
-    - "conversational AI"
-    - "natural language processing"
-    - "machine learning"
-    - "chat automation"
-    - "discord bot"
-    - "telegram bot"
-    - "slack bot"
-    - "language model"
+    - "data visualization"
+    - "data viz"
+    - "dataviz"
+    - "d3.js"
+    - "plotly"
+    - "tableau"
+    - "matplotlib"
+    - "seaborn"
+    - "chart"
+    - "graph"
+    - "dashboard"
+    - "infographic"
+    - "visual analytics"
   
   # Whether to add industry keywords to the search query
-  add_industry_keywords: true
+  add_industry_keywords: false
   
   # Minimum stars for a repository to be considered
   min_stars: 10
