@@ -1,0 +1,63 @@
+# GitHub Auto Cloner Configuration
+
+# GitHub API token - prefer setting via GITHUB_TOKEN environment variable
+github_token: ""
+
+# Search configuration
+search:
+  # Base search query
+  query: "food packaging"
+  
+  # Industry-specific keywords to find relevant repositories
+  industry_keywords:
+    - "food packaging"
+    - "sustainable packaging"
+    - "biodegradable"
+    - "compostable"
+    - "packaging automation"
+    - "food tech"
+    - "food safety"
+    - "shelf life"
+    - "food preservation"
+  
+  # Whether to add industry keywords to the search query
+  add_industry_keywords: true
+  
+  # Minimum stars for a repository to be considered
+  min_stars: 10
+  
+  # Filter by programming languages
+  languages:
+    - "python"
+    - "javascript"
+    - "java"
+    - "c++"
+  
+  # Maximum number of search results to process
+  max_results: 100
+  
+  # Date range filter (week, month, quarter, year, or empty for no filter)
+  date_range: "year"
+  
+  # Minimum industry relevance score (0.0-1.0)
+  min_industry_relevance: 0.2
+
+# Clone configuration
+clone:
+  # Directory to clone repositories into
+  directory: "cloned_repos"
+  
+  # Maximum number of repositories to clone
+  max_repositories: 10
+  
+  # Sort criteria for choosing which repositories to clone
+  # Options: stars, industry_relevance
+  sort_by: "stars"
+
+# Export configuration
+export:
+  # JSON export filename (timestamp will be appended)
+  json_file: "github_results.json"
+  
+  # CSV export filename (timestamp will be appended)
+  csv_file: "github_results.csv"

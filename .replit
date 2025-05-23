@@ -1,0 +1,41 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-24_05"
+packages = ["glibcLocales", "libyaml"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "GitHub Auto Cloner"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "run_github_auto_cloner"
+
+[[workflows.workflow]]
+name = "GitHub Auto Cloner"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install PyGithub pandas gitpython pyyaml && python github_auto_cloner.py --query \"replit bot\" --min-stars 5 --max-results 5"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "run_github_auto_cloner"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python github_auto_cloner.py --help"
+
+[deployment]
+run = ["sh", "-c", "pip install PyGithub pandas gitpython pyyaml && python github_auto_cloner.py --query \"replit bot\" --min-stars 5 --max-results 5"]
