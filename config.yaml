@@ -6,25 +6,25 @@ github_token: ""
 # Search configuration
 search:
   # Base search query
-  query: "food packaging robotics"
+  query: "production optimization"
   
   # Industry-specific keywords to find relevant repositories
   industry_keywords:
-    - "Manufacturing automation"
-    - "Industrial robotics"
-    - "Food packaging robots"
     - "Production line optimization"
-    - "Manufacturing dashboard"
-    - "Operations management software"
-    - "Manufacturing KPI tracking"
-    - "Predictive maintenance"
-    - "Supply chain automation"
-    - "Quality control systems"
-    - "Robot control"
-    - "Food processing"
-    - "Packaging automation"
-    - "OEE tracking"
-    - "Manufacturing ERP"
+    - "Manufacturing efficiency"
+    - "Throughput maximization"
+    - "Cycle time reduction"
+    - "Process automation"
+    - "Food packaging efficiency"
+    - "Robot optimization"
+    - "OEE improvement"
+    - "Line balancing"
+    - "Resource allocation"
+    - "Production scheduling"
+    - "Bottleneck detection"
+    - "Lean manufacturing"
+    - "Six sigma"
+    - "Digital twin production"
   
   # Whether to add industry keywords to the search query
   add_industry_keywords: true
