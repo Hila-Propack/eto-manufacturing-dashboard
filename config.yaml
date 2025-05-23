@@ -6,26 +6,28 @@ github_token: ""
 # Search configuration
 search:
   # Base search query
-  query: "data visualization"
+  query: "food packaging robotics"
   
   # Industry-specific keywords to find relevant repositories
   industry_keywords:
-    - "data visualization"
-    - "data viz"
-    - "dataviz"
-    - "d3.js"
-    - "plotly"
-    - "tableau"
-    - "matplotlib"
-    - "seaborn"
-    - "chart"
-    - "graph"
-    - "dashboard"
-    - "infographic"
-    - "visual analytics"
+    - "Manufacturing automation"
+    - "Industrial robotics"
+    - "Food packaging robots"
+    - "Production line optimization"
+    - "Manufacturing dashboard"
+    - "Operations management software"
+    - "Manufacturing KPI tracking"
+    - "Predictive maintenance"
+    - "Supply chain automation"
+    - "Quality control systems"
+    - "Robot control"
+    - "Food processing"
+    - "Packaging automation"
+    - "OEE tracking"
+    - "Manufacturing ERP"
   
   # Whether to add industry keywords to the search query
-  add_industry_keywords: false
+  add_industry_keywords: true
   
   # Minimum stars for a repository to be considered
   min_stars: 10
