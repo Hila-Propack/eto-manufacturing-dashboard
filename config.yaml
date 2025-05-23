@@ -6,25 +6,25 @@ github_token: ""
 # Search configuration
 search:
   # Base search query
-  query: "production optimization"
+  query: "resource allocation optimization"
   
   # Industry-specific keywords to find relevant repositories
   industry_keywords:
-    - "Production line optimization"
-    - "Manufacturing efficiency"
-    - "Throughput maximization"
-    - "Cycle time reduction"
-    - "Process automation"
-    - "Food packaging efficiency"
-    - "Robot optimization"
-    - "OEE improvement"
-    - "Line balancing"
     - "Resource allocation"
-    - "Production scheduling"
-    - "Bottleneck detection"
-    - "Lean manufacturing"
-    - "Six sigma"
-    - "Digital twin production"
+    - "Resource optimization"
+    - "Production planning"
+    - "Manufacturing resource planning"
+    - "Job shop scheduling"
+    - "Constraint optimization"
+    - "Linear programming"
+    - "Workforce optimization"
+    - "Equipment utilization"
+    - "Capacity planning"
+    - "Material requirements planning"
+    - "Resource leveling"
+    - "Optimization algorithms"
+    - "Operations research"
+    - "Resource management"
   
   # Whether to add industry keywords to the search query
   add_industry_keywords: true
